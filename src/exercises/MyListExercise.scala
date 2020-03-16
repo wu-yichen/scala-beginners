@@ -30,6 +30,9 @@ object MyListExercise extends App {
     def flatMap[B](transform: A => MyList[B]): MyList[B]
 
     def filter(predicate: A => Boolean): MyList[A]
+
+    // hofs
+    def foreach(f: A => Unit): Unit
   }
 
   case object Empty extends MyList[Nothing] {
@@ -51,6 +54,10 @@ object MyListExercise extends App {
     override def filter(predicate: Nothing => Boolean): MyList[Nothing] = Empty
 
     override def ++[B >: Nothing](list: MyList[B]): MyList[B] = list
+
+    // hofs
+    override def foreach(f: Nothing => Unit): Unit = ()
+
   }
 
   case class greatList[+A](val head: A, val tail: MyList[A]) extends MyList[A] {
@@ -71,6 +78,12 @@ object MyListExercise extends App {
     override def filter(predicate: A => Boolean): MyList[A] = if (predicate(head)) new greatList(head, tail.filter(predicate)) else tail.filter(predicate)
 
     override def ++[B >: A](list: MyList[B]): MyList[B] = new greatList(head, tail ++ list)
+
+    override def foreach(f: A => Unit): Unit = {
+      f(head)
+      tail.foreach(f)
+    }
+
   }
 
   val list: greatList[Int] = new greatList[Int](1, new greatList(2, new greatList(3, Empty)))
@@ -87,15 +100,10 @@ object MyListExercise extends App {
   val stringList = new greatList[String]("hello", new greatList[String]("scala", Empty))
   println(stringList.toString())
 
-  println(newList.map(new Function1[Int, Int] {
-    override def apply(v1: Int): Int = v1 * 2
-  }).toString())
+  println(newList.map(x => x * 2).toString())
+  //println(newList.map(_ * 2).toString())
 
-  println(newList.filter(new Function1[Int, Boolean] {
-    override def apply(v1: Int): Boolean = v1 % 2 != 0
-  }).toString())
+  println(newList.filter(x => x % 2 != 0).toString())
 
-  println(newList.flatMap(new Function1[Int, MyList[Int]] {
-    override def apply(v1: Int): MyList[Int] = new greatList[Int](v1, new greatList[Int](v1 + 1, Empty))
-  }).toString())
+  println(newList.flatMap(x => new greatList[Int](x, new greatList[Int](x + 1, Empty))).toString())
 }
